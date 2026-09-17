@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Claude / working notes stay out of this public repo (workspace convention)
+CLAUDE.md
+engineering_history.md
+scientific_findings.md
+.claude/

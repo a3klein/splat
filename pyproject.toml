@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "splat"
+version = "0.1.0"
+description = "SPLAT — spatial purification leveraging axial transcriptomics: per-cell axial coherence (ax_coh) from a transcript table"
+authors = [{ name = "Amit Klein", email = "a3klein@ucsd.edu" }]
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["spatial transcriptomics", "MERFISH", "segmentation", "doublets", "QC"]
+dependencies = ["numpy>=1.24", "pandas>=2.0"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Homepage = "https://github.com/a3klein/splat"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/splat"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
