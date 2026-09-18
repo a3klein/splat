@@ -7,7 +7,8 @@ table of assigned transcripts.
 The metric is **axial coherence** (`ax_coh`). Cut a cell in half along an axis, compare the
 two halves' gene profiles, and ask how that compares to cutting a spatially homogeneous
 cell of the same transcript count. A cell whose composition changes across the cut scores
-negative; a cell with no spatial structure scores around zero.
+negative; a cell with no spatial structure scores around zero. The initial idea comes from the
+Ovrlpy tool (link), however now implemented as a cell quality metric for any segmentation.
 
 ```python
 import splat
@@ -20,25 +21,18 @@ splat.impurity_rate(cells)            # 0.087
 
 Comparing segmentations, and flagging individual cells that are probably not one clean
 cell. It needs no cell-type labels, no reference, no embedding, no masks and no
-normalization — only which transcript went into which cell. That makes it usable as a
-segmentation QC metric before any downstream analysis exists, and it makes it insensitive
-to the choices in that downstream analysis.
+normalization — only which transcript went into which cell.
 
 ## What it is not
 
-**The flagged fraction is an impurity rate, not a doublet rate.** Low axial coherence says
-a cell's transcript composition changes across a spatial cut. A merged pair of cells does
-that — but so does spillover from a neighbouring cell, and so does genuine subcellular
-structure. On human cerebellum MERFISH the flag rate ran about **6x** the fraction of
-flagged cells that a 3D resegmentation actually splits into two, and flagged cells were no
-more likely to be genuinely splittable than unflagged ones. Treat the number as an upper
-bound on the doublet rate, and treat a *difference* between segmentations as a difference
-in impurity.
+**The flagged fraction is an impurity rate, not a doublet rate.** Low axial coherence indicates
+a cell's transcript composition changes across a spatial cut. A doublet does that, but so does
+spillover from a neighbouring cell, and so does genuine subcellular
+structure.
 
 **It is blind to homotypic merges.** Two merged cells of the same type have the same
 profile on both sides of the cut, so they are coherent. A segmentation that over-fragments
-cells into same-type pieces therefore scores well. Always read the impurity rate beside
-cell yield, median transcript count and median cell volume.
+cells into same-type pieces therefore scores well.
 
 ## Install
 
@@ -121,24 +115,11 @@ second = splat.score(tx_b, null=first.attrs["null"])
 ## Two things to know before trusting a number
 
 **The z axis is sensitive to how tied coordinates are split.** If z takes only a handful
-of distinct values — 7 planes in a typical MERFISH stack — the balanced split falls *inside*
+of distinct values — 7 planes in a typical MERSCOPE stack — the balanced split falls *inside*
 a plane, and which of the tied transcripts land on which side is decided by the input row
-order. On pooled cerebellum data, reordering the input rows moved individual cells'
-`cos_z` by a median of 0.065 and moved the overall impurity rate by ±0.2 percentage points
-(8.4–8.9% across five orderings). The cardinal x/y and principal axes are unaffected. Do
-not compare z-axis numbers computed from differently ordered inputs, and be careful reading
-a z-specific result off a coarsely sampled z.
+order. The cardinal x/y and principal axes are unaffected. Be careful reading a z-specific
+result off a coarsely sampled z.
 
 **A rate depends on the axis set.** `ax_coh_min` is a minimum, so adding axes can only
-lower it and raise the flag rate. On the same cerebellum data: 7.5% over `(x, y, z)`, 8.5%
-adding `pc1`, 11.1% over all six. The minor principal axes pick up within-cell gradients as
+lower it and raise the flag rate. The minor principal axes pick up within-cell gradients as
 well as merges. Set `axes=` explicitly and report which set you used.
-
-## Provenance
-
-The metric began as a per-cell multi-axis generalization of ovrlpy's vertical signal
-integrity, developed on human thalamus MERFISH and then used to benchmark a 192-config
-cerebellum segmentation grid. It was extracted here from `stqc`, where it lived as
-`metrics/_vsi.py`; "VSI" was retired as a name because five of the six axes are not
-vertical, and "doublet rate" was retired because the score measures how mixed a cell is,
-not how many nuclei it has.
